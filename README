@@ -1,0 +1,91 @@
+NAME
+    `Tickit::Widget::ScrollBox' - allow a single child widget to be scrolled
+
+SYNOPSIS
+     use Tickit;
+     use Tickit::Widget::ScrollBox;
+     use Tickit::Widget::Static;
+
+     my $scrollbox = Tickit::Widget::ScrollBox->new(
+        child => Tickit::Widget::Static->new(
+           text => join( "\n", map { "The content for line $_" } 1 .. 100 ),
+        ),
+     );
+
+     Tickit->new( root => $scrollbox )->run;
+
+DESCRIPTION
+    This container widget draws a scrollbar beside a single child widget and
+    allows a portion of it to be displayed by scrolling.
+
+STYLE
+    Th following style pen prefixes are used:
+
+    scrollbar => PEN
+        The pen used to render the background of the scroll bar
+
+    scrollmark => PEN
+        The pen used to render the active scroll position in the scroll bar
+
+    arrow => PEN
+        The pen used to render the scrolling arrow buttons
+
+    The following style keys are used:
+
+    arrow_up => STRING
+    arrow_down => STRING
+        Each should be a single character to use for the upward or downward
+        scroll arrow button.
+
+    The following style actions are used:
+
+    up_1 (<Up>)
+    down_1 (<Down>)
+        Scroll up or down 1 line
+
+    up_half (<PageUp>)
+    down_half (<PageDown>)
+        Scroll up or down half of the viewport
+
+    to_top (<C-Home>)
+    to_bottom (<C-End>)
+        Scroll to the top or bottom of the area
+
+CONSTRUCTOR
+  $scrollbox = Tickit::Widget::ScrollBox->new( %args )
+    Constructs a new `Tickit::Widget::ScrollBox' object.
+
+    Takes the same arguments as taken by the base Tickit::SingleChildWidget
+    constructor.
+
+ACCESSORS
+  $vextent = $scrollbox->vextent
+    Returns the Tickit::Widget::ScrollBox::Extent object representing the
+    box's vertical scrolling extent.
+
+METHODS
+  $scrollbox->scroll( $downward )
+    Requests the content be scrolled downward a number of lines (which may
+    be negative to scroll upwards).
+
+  $scrollbox->scroll_to( $top )
+    Requests the content be scrolled such that the given line number of the
+    child's content is the topmost visible in the container.
+
+TODO
+    *   Horizontal as well as vertical scrolling.
+
+    *   Allow either scrollbar to be always visible, visible only on demand
+        (when extent->limit > 0), or never.
+
+    *   Choice of left/right and top/bottom bar positions.
+
+    *   Hide/grey the up/down/left/right arrows when at endstop.
+
+    *   Allow smarter cooperation with a scrolling-aware child widget;
+        likely by setting extent objects on the child if it declares to be
+        supported, and use that instead of an offset child window.
+
+AUTHOR
+    Paul Evans <leonerd@leonerd.org.uk>
+
