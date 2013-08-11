@@ -16,7 +16,8 @@
    "prereqs" : {
       "build" : {
          "requires" : {
-            "Test::More" : "0.88"
+            "Test::More" : "0.88",
+            "Test::Refcount" : "0"
          }
       },
       "runtime" : {
@@ -29,11 +30,11 @@
    "provides" : {
       "Tickit::Widget::ScrollBox" : {
          "file" : "lib/Tickit/Widget/ScrollBox.pm",
-         "version" : "0.01"
+         "version" : "0.02"
       },
       "Tickit::Widget::ScrollBox::Extent" : {
          "file" : "lib/Tickit/Widget/ScrollBox/Extent.pm",
-         "version" : "0.01"
+         "version" : "0.02"
       }
    },
    "release_status" : "stable",
@@ -42,5 +43,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.01"
+   "version" : "0.02"
 }

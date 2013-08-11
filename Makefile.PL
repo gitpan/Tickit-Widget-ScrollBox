@@ -6,6 +6,7 @@ WriteMakefile
   'VERSION_FROM' => 'lib/Tickit/Widget/ScrollBox.pm',
   'PREREQ_PM' => {
                    'Test::More' => '0.88',
+                   'Test::Refcount' => 0,
                    'Tickit::SingleChildWidget' => '0.36',
                    'Tickit::Style' => '0.35'
                  },

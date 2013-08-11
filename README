@@ -34,53 +34,70 @@ STYLE
 
     arrow_up => STRING
     arrow_down => STRING
-        Each should be a single character to use for the upward or downward
-        scroll arrow button.
+    arrow_left => STRING
+    arrow_right => STRING
+        Each should be a single character to use for the scroll arrow
+        buttons.
 
     The following style actions are used:
 
     up_1 (<Up>)
     down_1 (<Down>)
-        Scroll up or down 1 line
+    left_1 (<Left>)
+    right_1 (<Right>)
+        Scroll by 1 line
 
     up_half (<PageUp>)
     down_half (<PageDown>)
-        Scroll up or down half of the viewport
+    left_half (<C-Left>)
+    right_half (<C-Right>)
+        Scroll by half of the viewport
 
     to_top (<C-Home>)
     to_bottom (<C-End>)
-        Scroll to the top or bottom of the area
+    to_leftmost (<Home>)
+    to_rightmost (<End>)
+        Scroll to the edge of the area
 
 CONSTRUCTOR
   $scrollbox = Tickit::Widget::ScrollBox->new( %args )
     Constructs a new `Tickit::Widget::ScrollBox' object.
 
-    Takes the same arguments as taken by the base Tickit::SingleChildWidget
-    constructor.
+    Takes the following named arguments in addition to those taken by the
+    base Tickit::SingleChildWidget constructor:
+
+    vertical => BOOL or "on_demand"
+    horizontal => BOOL or "on_demand"
+            Whether to apply a scrollbar in the vertical or horizontal
+            directions. If not given, these default to vertical only.
+
+            If given as the string `on_demand' then the scrollbar will be
+            optionally be displayed only if needed; if the space given to
+            the widget is smaller than the child content necessary to
+            display.
 
 ACCESSORS
   $vextent = $scrollbox->vextent
     Returns the Tickit::Widget::ScrollBox::Extent object representing the
     box's vertical scrolling extent.
 
-METHODS
-  $scrollbox->scroll( $downward )
-    Requests the content be scrolled downward a number of lines (which may
-    be negative to scroll upwards).
+  $hextent = $scrollbox->hextent
+    Returns the Tickit::Widget::ScrollBox::Extent object representing the
+    box's horizontal scrolling extent.
 
-  $scrollbox->scroll_to( $top )
-    Requests the content be scrolled such that the given line number of the
-    child's content is the topmost visible in the container.
+METHODS
+  $scrollbox->scroll( $downward, $rightward )
+    Requests the content be scrolled downward a number of lines and
+    rightward a number of columns (either of which which may be negative).
+
+  $scrollbox->scroll_to( $top, $left )
+    Requests the content be scrolled such that the given line and column
+    number of the child's content is the topmost visible in the container.
 
 TODO
-    *   Horizontal as well as vertical scrolling.
-
-    *   Allow either scrollbar to be always visible, visible only on demand
-        (when extent->limit > 0), or never.
-
     *   Choice of left/right and top/bottom bar positions.
 
-    *   Hide/grey the up/down/left/right arrows when at endstop.
+    *   Click-and-hold on arrow buttons for auto-repeat
 
     *   Allow smarter cooperation with a scrolling-aware child widget;
         likely by setting extent objects on the child if it declares to be

@@ -1,4 +1,10 @@
 Revision history for Tickit-Widget-ScrollBox
 
+0.02    CHANGES:
+         * Allow horizontal scrolling
+         * Allow display of scrollbars on-demand
+         * Updated visual style; use line-drawing for scrollbars
+         * Hide arrow buttons when scrollbar is at full end stop
+
 0.01    First version, released on an unsuspecting world.
 

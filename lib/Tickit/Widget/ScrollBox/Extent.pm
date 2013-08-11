@@ -8,7 +8,7 @@ package Tickit::Widget::ScrollBox::Extent;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Scalar::Util qw( weaken );
 
@@ -147,26 +147,27 @@ sub scroll_to
    $self->{scrollbox}->_extent_scrolled;
 }
 
-=head2 ( $top, $bottom ) = $extent->scrollbar_geom( $length )
+=head2 ( $bar_top, $mark_top, $mark_bottom, $bar_bottom ) = $extent->scrollbar_geom( $top, $length )
 
-Calculates the start and end positions of a scrollbar mark to represent the
-position of the extent. Returns two integer indexes within C<$length>.
+Calculates the start and end positions of a scrollbar and the mark within it
+to represent the position of the extent. Returns four integer indexes within
+C<$length>.
 
 =cut
 
 sub scrollbar_geom
 {
    my $self = shift;
-   my ( $length ) = @_;
+   my ( $top, $length ) = @_;
 
    my $total = $self->total;
 
-   my $bar_height = int( $self->viewport * $length / $total + 0.5 );
-   $bar_height = 1 if $bar_height < 1;
+   my $bar_length = int( $self->viewport * $length / $total + 0.5 );
+   $bar_length = 1 if $bar_length < 1;
 
-   my $bar_top = int( $self->start * $length / $total + 0.5 );
+   my $bar_start = $top + int( $self->start * $length / $total + 0.5 );
 
-   return ( $bar_top, $bar_top + $bar_height );
+   return ( $top, $bar_start, $bar_start + $bar_length, $top + $length );
 }
 
 =head1 AUTHOR
