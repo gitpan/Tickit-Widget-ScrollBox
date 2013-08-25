@@ -41,6 +41,8 @@ $widget->set_window( $win );
 
 ok( defined $static->window, '$static has window after $widget->set_window' );
 
+is( $static->window->top,     0, '$static window starts on line 0' );
+is( $static->window->left,    0, '$static window starts on column 0' );
 is( $static->window->lines,  24, '$static given 24 line window' );
 is( $static->window->cols,  159, '$static given 159 column window' );
 
@@ -62,6 +64,9 @@ is_display( [ ( map +[TEXT("Content on line $_:" . join( ",", 1 .. 24 ) )], 1 ..
 $widget->scroll( undef, +10 );
 flush_tickit;
 
+is( $static->window->left, -10, '$static window starts on column -10 after ->scroll +10' );
+is( $hextent->start, 10, '$hextent->start is now 10 after ->scroll +10' );
+
 is_display( [ ( map +[TEXT(" line $_:" . join( ",", 1 .. 27 ) . "," )], 1 .. 9 ),
               ( map +[TEXT(" line $_:" . join( ",", 1 .. 27 ) )], 10 ),
               BLANKLINES(14),
@@ -72,10 +77,11 @@ is_display( [ ( map +[TEXT(" line $_:" . join( ",", 1 .. 27 ) . "," )], 1 .. 9 )
                TEXT("\x{25B8}",rv=>1)] ],
             'Display after scroll +10' );
 
-is( $hextent->start, 10, '$hextent->start is now 10 after ->scroll' );
-
 $hextent->scroll_to( 25 );
 flush_tickit;
+
+is( $static->window->left, -25, '$static window starts on column -10 after ->scroll_to 25' );
+is( $hextent->start, 25, '$hextent->start is now 10 after ->scroll_to 25' );
 
 is_display( [ ( map +[TEXT("," . join( ",", 5 .. 32 ) . "," )], 1 .. 9 ),
               ( map +[TEXT(join( ",", 4 .. 32 ) )], 10 ),

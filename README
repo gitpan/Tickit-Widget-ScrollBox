@@ -94,6 +94,40 @@ METHODS
     Requests the content be scrolled such that the given line and column
     number of the child's content is the topmost visible in the container.
 
+SMART SCROLLING
+    If the child widget declares it supports smart scrolling, then the
+    ScrollBox will not implement content scrolling on its behalf. Extra
+    methods are used to co-ordinate the scroll position between the
+    scrolling-aware child widget and the containing ScrollBox. This is
+    handled by the following methods on the child widget.
+
+    If smart scrolling is enabled for the child, then its window will be set
+    to the viewport directly, and the child widget must offset its content
+    within the window as appropriate. The `lines' and `cols' methods will
+    continue to be called, and will continue to be used to query the child
+    on how much content it has that requires scrolling (for setting the
+    total of the extent objects).
+
+  $smart = $child->CAN_SCROLL
+    If this method exists and returns a true value, the ScrollBox will use
+    smart scrolling. This method must return a true value for this to work,
+    allowing the method to itself be a proxy, for example, to proxy
+    scrolling information through a single child widget container.
+
+  $child->set_scrolling_extents( $vextent, $hextent )
+    Gives the child widget the vertical and horizontal scrolling extents.
+    The child widget should save thes values, and inspect the `start' value
+    of them any time it needs these to implement content offset position
+    when rendering.
+
+  $child->scrolled( $downward, $rightward, $h_or_v )
+    Informs the child widget that one of the scroll positions has changed.
+    It passes the delta (which may be negative) of each position, and a
+    string which will be either `"h"' or `"v"' to indicate whether it was an
+    adjustment of the horizontal or vertical scrollbar. The extent objects
+    will already have been updated by this point, so the child may also
+    inspect the `start' value of them to obtain the new absolute offsets.
+
 TODO
     *   Choice of left/right and top/bottom bar positions.
 

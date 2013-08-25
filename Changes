@@ -1,5 +1,11 @@
 Revision history for Tickit-Widget-ScrollBox
 
+0.03    CHANGES:
+         * Allow smart-scrolling with a scroll-aware child widget
+         * Use $win->scroll_with_children to implement non-smart scrolling
+           more efficiency
+         * Remember to set WIDGET_PEN_FROM_STYLE
+
 0.02    CHANGES:
          * Allow horizontal scrolling
          * Allow display of scrollbars on-demand

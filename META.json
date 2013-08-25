@@ -17,24 +17,26 @@
       "build" : {
          "requires" : {
             "Test::More" : "0.88",
-            "Test::Refcount" : "0"
+            "Test::Refcount" : "0",
+            "Tickit::Test" : "0.38"
          }
       },
       "runtime" : {
          "requires" : {
             "Tickit::SingleChildWidget" : "0.36",
-            "Tickit::Style" : "0.35"
+            "Tickit::Style" : "0.35",
+            "Tickit::Window" : "0.39"
          }
       }
    },
    "provides" : {
       "Tickit::Widget::ScrollBox" : {
          "file" : "lib/Tickit/Widget/ScrollBox.pm",
-         "version" : "0.02"
+         "version" : "0.03"
       },
       "Tickit::Widget::ScrollBox::Extent" : {
          "file" : "lib/Tickit/Widget/ScrollBox/Extent.pm",
-         "version" : "0.02"
+         "version" : "0.03"
       }
    },
    "release_status" : "stable",
@@ -43,5 +45,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.02"
+   "version" : "0.03"
 }

@@ -8,7 +8,7 @@ package Tickit::Widget::ScrollBox::Extent;
 use strict;
 use warnings;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Scalar::Util qw( weaken );
 
@@ -27,10 +27,11 @@ returned by the C<vextent> method of the associated ScrollBox.
 sub new
 {
    my $class = shift;
-   my ( $scrollbox ) = @_;
+   my ( $scrollbox, $id ) = @_;
 
    my $self = bless {
       start => 0,
+      id    => $id,
    }, $class;
 
    weaken( $self->{scrollbox} = $scrollbox );
@@ -143,8 +144,10 @@ sub scroll_to
 
    return if $self->{start} == $start;
 
+   my $delta = $start - $self->{start};
+
    $self->{start} = $start;
-   $self->{scrollbox}->_extent_scrolled;
+   $self->{scrollbox}->_extent_scrolled( $self->{id}, $delta, $start );
 }
 
 =head2 ( $bar_top, $mark_top, $mark_bottom, $bar_bottom ) = $extent->scrollbar_geom( $top, $length )

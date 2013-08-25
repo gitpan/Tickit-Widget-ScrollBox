@@ -1,5 +1,7 @@
 Build.PL
 Changes
+examples/demo-gridbox.pl
+examples/demo-smart.pl
 examples/demo.pl
 lib/Tickit/Widget/ScrollBox.pm
 lib/Tickit/Widget/ScrollBox/Extent.pm
@@ -15,4 +17,5 @@ t/01scrollbox-vertical.t
 t/02input-key.t
 t/03input-mouse.t
 t/04on_demand.t
+t/05smart.t
 t/99pod.t

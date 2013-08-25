@@ -8,9 +8,12 @@ package Tickit::Widget::ScrollBox;
 use strict;
 use warnings;
 use base qw( Tickit::SingleChildWidget );
+Tickit::Window->VERSION( '0.39' ); # ->scroll_with_children
 use Tickit::Style;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
+
+use Carp;
 
 use List::Util qw( max );
 
@@ -136,6 +139,7 @@ style_definition base =>
    '<End>'       => "to_rightmost",
    ;
 
+use constant WIDGET_PEN_FROM_STYLE => 1;
 use constant KEYPRESSES_FROM_STYLE => 1;
 
 =head1 CONSTRUCTOR
@@ -176,8 +180,8 @@ sub new
 
    my $self = $class->SUPER::new( %args );
 
-   $self->{vextent} = Tickit::Widget::ScrollBox::Extent->new( $self ) if $vertical;
-   $self->{hextent} = Tickit::Widget::ScrollBox::Extent->new( $self ) if $horizontal;
+   $self->{vextent} = Tickit::Widget::ScrollBox::Extent->new( $self, "v" ) if $vertical;
+   $self->{hextent} = Tickit::Widget::ScrollBox::Extent->new( $self, "h" ) if $horizontal;
 
    $self->{v_on_demand} = $vertical  ||'' eq "on_demand";
    $self->{h_on_demand} = $horizontal||'' eq "on_demand";
@@ -247,6 +251,21 @@ sub _h_visible
 
 =cut
 
+sub children_changed
+{
+   my $self = shift;
+   if( my $child = $self->child ) {
+      my $scrollable = $self->{child_is_scrollable} = $child->can( "CAN_SCROLL" ) && $child->CAN_SCROLL;
+
+      if( $scrollable ) {
+         foreach my $method (qw( set_scrolling_extents scrolled )) {
+            $child->can( $method ) or croak "ScrollBox child cannot ->$method - do you implement it?";
+         }
+      }
+   }
+   $self->SUPER::children_changed;
+}
+
 sub reshape
 {
    my $self = shift;
@@ -284,22 +303,29 @@ sub reshape
    $vextent->set_viewport( $viewport->lines, $child->lines ) if $vextent;
    $hextent->set_viewport( $viewport->cols,  $child->cols  ) if $hextent;
 
-   my ( $childtop, $childlines ) =
-      $vextent ? ( -$vextent->start, $vextent->total )
-               : ( 0, max( $child->lines, $viewport->lines ) );
-
-   my ( $childleft, $childcols ) =
-      $hextent ? ( -$hextent->start, $hextent->total )
-               : ( 0, max( $child->cols, $viewport->cols ) );
-
-   my @childgeom = ( $childtop, $childleft, $childlines, $childcols );
-
-   if( my $childwin = $child->window ) {
-      $childwin->change_geometry( @childgeom );
+   if( $self->{child_is_scrollable} ) {
+      $child->set_scrolling_extents( $vextent, $hextent );
+      $child->set_window( $viewport ) unless $child->window;
    }
    else {
-      $childwin = $viewport->make_sub( @childgeom );
-      $child->set_window( $childwin );
+      my ( $childtop, $childlines ) =
+         $vextent ? ( -$vextent->start, $vextent->total )
+                  : ( 0, max( $child->lines, $viewport->lines ) );
+
+      my ( $childleft, $childcols ) =
+         $hextent ? ( -$hextent->start, $hextent->total )
+                  : ( 0, max( $child->cols, $viewport->cols ) );
+
+      my @childgeom = ( $childtop, $childleft, $childlines, $childcols );
+
+      if( my $childwin = $child->window ) {
+         $childwin->change_geometry( @childgeom );
+      }
+      else {
+         $childwin = $viewport->make_sub( @childgeom );
+         $childwin->set_expose_after_scroll( 1 );
+         $child->set_window( $childwin );
+      }
    }
 }
 
@@ -346,19 +372,47 @@ sub scroll_to
 sub _extent_scrolled
 {
    my $self = shift;
+   my ( $id, $delta, $value ) = @_;
 
    my $vextent = $self->vextent;
    my $hextent = $self->hextent;
 
+   my $win = $self->window;
+   if( $id eq "v" ) {
+      $win->expose( Tickit::Rect->new(
+         top  => 0,              lines => $win->lines,
+         left => $win->cols - 1, cols  => 1,
+      ) );
+   }
+   elsif( $id eq "h" ) {
+      $win->expose( Tickit::Rect->new(
+         top  => $win->lines - 1, lines => 1,
+         left => 0,               cols  => $win->cols,
+      ) );
+   }
+
    my $child = $self->child or return;
-   my $childwin = $child->window or return;
 
-   $childwin->reposition( $vextent ? -$vextent->start : 0,
-                          $hextent ? -$hextent->start : 0 );
+   my ( $downward, $rightward ) = ( 0, 0 );
+   if( $id eq "v" ) {
+      $downward = $delta;
+   }
+   elsif( $id eq "h" ) {
+      $rightward = $delta;
+   }
 
-   # TODO: scrolling might be possible with ->scrollrect
+   if( $self->{child_is_scrollable} ) {
+      $child->scrolled( $downward, $rightward, $id );
+   }
+   else {
+      my $childwin = $child->window or return;
 
-   $self->redraw;
+      $childwin->reposition( $vextent ? -$vextent->start : 0,
+                             $hextent ? -$hextent->start : 0 );
+
+      my $viewport = $self->{viewport};
+      $viewport->scroll_with_children( $downward, $rightward );
+   }
 }
 
 sub render_to_rb
@@ -537,6 +591,45 @@ sub on_mouse
       return 1;
    }
 }
+
+=head1 SMART SCROLLING
+
+If the child widget declares it supports smart scrolling, then the ScrollBox
+will not implement content scrolling on its behalf. Extra methods are used to
+co-ordinate the scroll position between the scrolling-aware child widget and
+the containing ScrollBox. This is handled by the following methods on the
+child widget.
+
+If smart scrolling is enabled for the child, then its window will be set to
+the viewport directly, and the child widget must offset its content within the
+window as appropriate. The C<lines> and C<cols> methods will continue to be
+called, and will continue to be used to query the child on how much content it
+has that requires scrolling (for setting the total of the extent objects).
+
+=head2 $smart = $child->CAN_SCROLL
+
+If this method exists and returns a true value, the ScrollBox will use smart
+scrolling. This method must return a true value for this to work, allowing the
+method to itself be a proxy, for example, to proxy scrolling information
+through a single child widget container.
+
+=head2 $child->set_scrolling_extents( $vextent, $hextent )
+
+Gives the child widget the vertical and horizontal scrolling extents. The
+child widget should save thes values, and inspect the C<start> value of them
+any time it needs these to implement content offset position when
+rendering.
+
+=head2 $child->scrolled( $downward, $rightward, $h_or_v )
+
+Informs the child widget that one of the scroll positions has changed. It
+passes the delta (which may be negative) of each position, and a string which
+will be either C<"h"> or C<"v"> to indicate whether it was an adjustment of
+the horizontal or vertical scrollbar. The extent objects will already have
+been updated by this point, so the child may also inspect the C<start> value
+of them to obtain the new absolute offsets.
+
+=cut
 
 =head1 TODO
 

@@ -8,7 +8,9 @@ WriteMakefile
                    'Test::More' => '0.88',
                    'Test::Refcount' => 0,
                    'Tickit::SingleChildWidget' => '0.36',
-                   'Tickit::Style' => '0.35'
+                   'Tickit::Style' => '0.35',
+                   'Tickit::Test' => '0.38',
+                   'Tickit::Window' => '0.39'
                  },
   'INSTALLDIRS' => 'site',
   'EXE_FILES' => [],

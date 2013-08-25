@@ -38,6 +38,8 @@ $widget->set_window( $win );
 
 ok( defined $static->window, '$static has window after $widget->set_window' );
 
+is( $static->window->top,     0, '$static window starts on line 0' );
+is( $static->window->left,    0, '$static window starts on column 0' );
 is( $static->window->lines, 100, '$static given 100 line window' );
 is( $static->window->cols,   79, '$static given 79 column window' );
 
@@ -60,6 +62,9 @@ is_display( [ [TEXT("Content on line 1"), BLANK(62),
 $widget->scroll( +10 );
 flush_tickit;
 
+is( $static->window->top, -10, '$static window starts on line -10 after ->scroll +10' );
+is( $vextent->start, 10, '$vextent->start is now 10 after ->scroll +10' );
+
 is_display( [ [TEXT("Content on line 11"), BLANK(61),
                  TEXT("\x{25B4}",rv=>1)],
               ( map +[TEXT("Content on line $_"), BLANK(63-length$_),
@@ -72,10 +77,11 @@ is_display( [ [TEXT("Content on line 11"), BLANK(61),
                  TEXT("\x{25BE}",rv=>1)] ],
             'Display after scroll +10' );
 
-is( $vextent->start, 10, '$vextent->start is now 10 after ->scroll' );
-
 $vextent->scroll_to( 25 );
 flush_tickit;
+
+is( $static->window->top, -25, '$static window starts on line -25 after ->scroll_to 25' );
+is( $vextent->start, 25, '$vextent->start is now 25 after ->scroll_to 25' );
 
 is_display( [ [TEXT("Content on line 26"), BLANK(61),
                  TEXT("\x{25B4}",rv=>1)],
