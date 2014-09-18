@@ -1,7 +1,7 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2013 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2013-2014 -- leonerd@leonerd.org.uk
 
 package Tickit::Widget::ScrollBox;
 
@@ -11,7 +11,7 @@ use base qw( Tickit::SingleChildWidget );
 Tickit::Window->VERSION( '0.39' ); # ->scroll_with_children
 use Tickit::Style;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Carp;
 
@@ -178,6 +178,8 @@ sub new
    my $vertical   = delete $args{vertical} // 1;
    my $horizontal = delete $args{horizontal};
 
+   my $child = delete $args{child};
+
    my $self = $class->SUPER::new( %args );
 
    $self->{vextent} = Tickit::Widget::ScrollBox::Extent->new( $self, "v" ) if $vertical;
@@ -185,6 +187,8 @@ sub new
 
    $self->{v_on_demand} = $vertical  ||'' eq "on_demand";
    $self->{h_on_demand} = $horizontal||'' eq "on_demand";
+
+   $self->add( $child ) if $child;
 
    return $self;
 }
@@ -261,6 +265,13 @@ sub children_changed
          foreach my $method (qw( set_scrolling_extents scrolled )) {
             $child->can( $method ) or croak "ScrollBox child cannot ->$method - do you implement it?";
          }
+
+         my $vextent = $self->vextent;
+         my $hextent = $self->hextent;
+
+         $child->set_scrolling_extents( $vextent, $hextent );
+         defined $vextent->real_total or croak "ScrollBox child did not set vextent->total" if $vextent;
+         defined $hextent->real_total or croak "ScrollBox child did not set hextent->total" if $hextent;
       }
    }
    $self->SUPER::children_changed;
@@ -276,8 +287,13 @@ sub reshape
    my $vextent = $self->vextent;
    my $hextent = $self->hextent;
 
-   my $v_spare = $child->lines - $window->lines;
-   my $h_spare = $child->cols  - $window->cols;
+   if( !$self->{child_is_scrollable} ) {
+      $vextent->set_total( $child->lines ) if $vextent;
+      $hextent->set_total( $child->cols  ) if $hextent;
+   }
+
+   my $v_spare = ( $vextent ? $vextent->real_total : $window->lines-1 ) - $window->lines;
+   my $h_spare = ( $hextent ? $hextent->real_total : $window->cols-1  ) - $window->cols;
 
    # visibility of each bar might depend on the visibility of the other, if it
    # it was exactly at limit
@@ -300,11 +316,10 @@ sub reshape
       $self->{viewport} = $viewport;
    }
 
-   $vextent->set_viewport( $viewport->lines, $child->lines ) if $vextent;
-   $hextent->set_viewport( $viewport->cols,  $child->cols  ) if $hextent;
+   $vextent->set_viewport( $viewport->lines ) if $vextent;
+   $hextent->set_viewport( $viewport->cols  ) if $hextent;
 
    if( $self->{child_is_scrollable} ) {
-      $child->set_scrolling_extents( $vextent, $hextent );
       $child->set_window( $viewport ) unless $child->window;
    }
    else {
@@ -377,19 +392,23 @@ sub _extent_scrolled
    my $vextent = $self->vextent;
    my $hextent = $self->hextent;
 
-   my $win = $self->window;
-   if( $id eq "v" ) {
-      $win->expose( Tickit::Rect->new(
-         top  => 0,              lines => $win->lines,
-         left => $win->cols - 1, cols  => 1,
-      ) );
+   if( my $win = $self->window ) {
+      if( $id eq "v" ) {
+         $win->expose( Tickit::Rect->new(
+            top  => 0,              lines => $win->lines,
+            left => $win->cols - 1, cols  => 1,
+         ) );
+      }
+      elsif( $id eq "h" ) {
+         $win->expose( Tickit::Rect->new(
+            top  => $win->lines - 1, lines => 1,
+            left => 0,               cols  => $win->cols,
+         ) );
+      }
    }
-   elsif( $id eq "h" ) {
-      $win->expose( Tickit::Rect->new(
-         top  => $win->lines - 1, lines => 1,
-         left => 0,               cols  => $win->cols,
-      ) );
-   }
+
+   # Extents use $delta = 0 to just request a redraw e.g. on change of total
+   return if $delta == 0;
 
    my $child = $self->child or return;
 
@@ -467,20 +486,20 @@ sub render_to_rb
    }
 }
 
-sub key_up_1    { my $vextent = shift->vextent; $vextent->scroll( -1 ) }
-sub key_down_1  { my $vextent = shift->vextent; $vextent->scroll( +1 ) }
-sub key_left_1  { my $hextent = shift->hextent; $hextent->scroll( -1 ) }
-sub key_right_1 { my $hextent = shift->hextent; $hextent->scroll( +1 ) }
+sub key_up_1    { my $vextent = shift->vextent or return; $vextent->scroll( -1 ); 1 }
+sub key_down_1  { my $vextent = shift->vextent or return; $vextent->scroll( +1 ); 1 }
+sub key_left_1  { my $hextent = shift->hextent or return; $hextent->scroll( -1 ); 1 }
+sub key_right_1 { my $hextent = shift->hextent or return; $hextent->scroll( +1 ); 1 }
 
-sub key_up_half    { my $vextent = shift->vextent; $vextent->scroll( -int( $vextent->viewport / 2 ) ) }
-sub key_down_half  { my $vextent = shift->vextent; $vextent->scroll( +int( $vextent->viewport / 2 ) ) }
-sub key_left_half  { my $hextent = shift->hextent; $hextent->scroll( -int( $hextent->viewport / 2 ) ) }
-sub key_right_half { my $hextent = shift->hextent; $hextent->scroll( +int( $hextent->viewport / 2 ) ) }
+sub key_up_half    { my $vextent = shift->vextent or return; $vextent->scroll( -int( $vextent->viewport / 2 ) ); 1 }
+sub key_down_half  { my $vextent = shift->vextent or return; $vextent->scroll( +int( $vextent->viewport / 2 ) ); 1 }
+sub key_left_half  { my $hextent = shift->hextent or return; $hextent->scroll( -int( $hextent->viewport / 2 ) ); 1 }
+sub key_right_half { my $hextent = shift->hextent or return; $hextent->scroll( +int( $hextent->viewport / 2 ) ); 1 }
 
-sub key_to_top       { my $vextent = shift->vextent; $vextent->scroll_to( 0 ) }
-sub key_to_bottom    { my $vextent = shift->vextent; $vextent->scroll_to( $vextent->limit ) }
-sub key_to_leftmost  { my $hextent = shift->hextent; $hextent->scroll_to( 0 ) }
-sub key_to_rightmost { my $hextent = shift->hextent; $hextent->scroll_to( $hextent->limit ) }
+sub key_to_top       { my $vextent = shift->vextent or return; $vextent->scroll_to( 0 ); 1 }
+sub key_to_bottom    { my $vextent = shift->vextent or return; $vextent->scroll_to( $vextent->limit ); 1 }
+sub key_to_leftmost  { my $hextent = shift->hextent or return; $hextent->scroll_to( 0 ); 1 }
+sub key_to_rightmost { my $hextent = shift->hextent or return; $hextent->scroll_to( $hextent->limit ); 1 }
 
 sub on_mouse
 {
@@ -585,9 +604,10 @@ sub on_mouse
       undef $self->{drag_offset};
    }
    elsif( $type eq "wheel" ) {
-      my $vextent = $self->vextent;
-      $vextent->scroll( -5 ) if $button eq "up";
-      $vextent->scroll( +5 ) if $button eq "down";
+      # Alt-wheel for horizontal
+      my $extent = $args->mod & 2 ? $self->hextent : $self->vextent;
+      $extent->scroll( -5 ) if $extent and $button eq "up";
+      $extent->scroll( +5 ) if $extent and $button eq "down";
       return 1;
    }
 }
@@ -602,9 +622,8 @@ child widget.
 
 If smart scrolling is enabled for the child, then its window will be set to
 the viewport directly, and the child widget must offset its content within the
-window as appropriate. The C<lines> and C<cols> methods will continue to be
-called, and will continue to be used to query the child on how much content it
-has that requires scrolling (for setting the total of the extent objects).
+window as appropriate. The child must indicate the range of its scrolling
+ability by using the C<set_total> method on the extent object it is given.
 
 =head2 $smart = $child->CAN_SCROLL
 

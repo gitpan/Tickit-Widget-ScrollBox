@@ -22,8 +22,8 @@ Tickit->new( root => $border )->run;
 package ScrollableWidget;
 use base qw( Tickit::Widget );
 
-sub lines { 100 }
-sub cols  { 50 }
+sub lines { 1 }
+sub cols  { 1 }
 
 use constant CAN_SCROLL => 1;
 
@@ -31,6 +31,8 @@ sub set_scrolling_extents
 {
    my $self = shift;
    ( $self->{vextent}, $self->{hextent} ) = @_;
+   $self->{vextent}->set_total( 100 ) if $self->{vextent};
+   $self->{hextent}->set_total(  50 ) if $self->{hextent};
 }
 
 sub scrolled

@@ -8,7 +8,7 @@ package Tickit::Widget::ScrollBox::Extent;
 use strict;
 use warnings;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Scalar::Util qw( weaken );
 
@@ -38,19 +38,22 @@ sub new
    return $self;
 }
 
+sub _clamp
+{
+   my $self = shift;
+
+   my $limit = $self->total - $self->viewport;
+   $self->{start} = $limit if $self->{start} > $limit;
+}
+
 # Internal; used by T:W:ScrollBox
 sub set_viewport
 {
    my $self = shift;
-   my ( $viewport, $total ) = @_;
-
-   $total = $viewport if $viewport > $total;
+   my ( $viewport ) = @_;
 
    $self->{viewport} = $viewport;
-   $self->{total}    = $total;
-
-   my $limit = $total - $viewport;
-   $self->{start} = $limit if $self->{start} > $limit;
+   $self->_clamp if defined $self->{total};
 }
 
 =head1 ACCESSORS
@@ -75,12 +78,39 @@ sub viewport
 Returns the total size of the scrollable area; which is always at least the
 size of the viewport.
 
+=head2 $extent->set_total( $total )
+
+Sets the total size of the scrollable area. This method should only be used by
+the child widget, when it is performing smart scrolling.
+
 =cut
 
 sub total
 {
    my $self = shift;
+   my $viewport = $self->{viewport};
+   my $total    = $self->{total};
+   $total = $viewport if $viewport > $total;
+   return $total;
+}
+
+sub real_total
+{
+   my $self = shift;
    return $self->{total};
+}
+
+sub set_total
+{
+   my $self = shift;
+   my ( $total ) = @_;
+
+   return if defined $self->{total} and $self->{total} == $total;
+
+   $self->{total} = $total;
+   $self->_clamp if defined $self->{viewport};
+
+   $self->{scrollbox}->_extent_scrolled( $self->{id}, 0, undef );
 }
 
 =head2 $limit = $extent->limit

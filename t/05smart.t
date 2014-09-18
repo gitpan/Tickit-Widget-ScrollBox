@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use utf8;
 
 use Test::More;
 
@@ -19,13 +20,15 @@ my ( $downward, $rightward ) = (0) x 2;
 
    use constant CAN_SCROLL => 1;
 
-   sub lines { 100 }
-   sub cols  { 50 }
+   sub lines { 1 }
+   sub cols  { 1 }
 
    sub set_scrolling_extents
    {
       shift;
       ( $vextent, $hextent ) = @_;
+      $vextent->set_total( 100 );
+      $hextent->set_total(  50 )
    }
 
    sub scrolled
@@ -58,6 +61,12 @@ is( $child->window->left,   0, '$child window starts on column 0' );
 is( $child->window->lines, 25, '$child given 25 line window' );
 is( $child->window->cols,  79, '$child given 79 column window' );
 
+is_display( [ [ BLANK(79), TEXT(" ",rv=>1)],
+              ([BLANK(79), TEXT(" ",bg=>4)]) x 6,
+              ([BLANK(79), TEXT("║",fg=>4)]) x 17,
+              [ BLANK(79), TEXT("▾",rv=>1)] ],
+            'Display initially' );
+
 $widget->scroll( +10 );
 flush_tickit;
 
@@ -72,5 +81,21 @@ flush_tickit;
 is( $downward, 15, '$child informed of scroll_to 25' );
 
 is( $child->window->top, 0, '$child window still starts on line 0 after scroll_to 25' );
+
+is_display( [ [ BLANK(79), TEXT("▴",rv=>1)],
+              ([BLANK(79), TEXT("║",fg=>4)]) x 6,
+              ([BLANK(79), TEXT(" ",bg=>4)]) x 6,
+              ([BLANK(79), TEXT("║",fg=>4)]) x 11,
+              [ BLANK(79), TEXT("▾",rv=>1)] ],
+            'Display after scrolls' );
+
+$vextent->set_total( 50 );
+flush_tickit;
+
+is_display( [ [ BLANK(79), TEXT("▴",rv=>1)],
+              ([BLANK(79), TEXT("║",fg=>4)]) x 12,
+              ([BLANK(79), TEXT(" ",bg=>4)]) x 11,
+              [ BLANK(79), TEXT(" ",rv=>1)] ],
+            'Display after ->set_total 50' );
 
 done_testing;

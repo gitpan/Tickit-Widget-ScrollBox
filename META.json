@@ -4,7 +4,7 @@
       "Paul Evans <leonerd@leonerd.org.uk>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.4005, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Module::Build version 0.4206",
    "license" : [
       "perl_5"
    ],
@@ -32,11 +32,11 @@
    "provides" : {
       "Tickit::Widget::ScrollBox" : {
          "file" : "lib/Tickit/Widget/ScrollBox.pm",
-         "version" : "0.03"
+         "version" : "0.04"
       },
       "Tickit::Widget::ScrollBox::Extent" : {
          "file" : "lib/Tickit/Widget/ScrollBox/Extent.pm",
-         "version" : "0.03"
+         "version" : "0.04"
       }
    },
    "release_status" : "stable",
@@ -45,5 +45,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.03"
+   "version" : "0.04"
 }

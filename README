@@ -103,10 +103,9 @@ SMART SCROLLING
 
     If smart scrolling is enabled for the child, then its window will be set
     to the viewport directly, and the child widget must offset its content
-    within the window as appropriate. The `lines' and `cols' methods will
-    continue to be called, and will continue to be used to query the child
-    on how much content it has that requires scrolling (for setting the
-    total of the extent objects).
+    within the window as appropriate. The child must indicate the range of
+    its scrolling ability by using the `set_total' method on the extent
+    object it is given.
 
   $smart = $child->CAN_SCROLL
     If this method exists and returns a true value, the ScrollBox will use

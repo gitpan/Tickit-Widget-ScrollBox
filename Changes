@@ -1,5 +1,17 @@
 Revision history for Tickit-Widget-ScrollBox
 
+0.04    2014/09/18 21:03:56
+        [CHANGES]
+         * Accept Alt+wheel to scroll horizontally
+         * Better smart scrolling protocol: have the child widget call
+           $extent->set_total() rather than abusing the lines/cols protocol
+        
+        [BUGFIXES]
+         * Don't crash on attempts to scroll in non-existent directions
+         * Ensure scrollbars get redrawn when smart child calls ->set_total
+         * Ensure key handler methods return a true value to stop event
+           propagation
+
 0.03    CHANGES:
          * Allow smart-scrolling with a scroll-aware child widget
          * Use $win->scroll_with_children to implement non-smart scrolling
