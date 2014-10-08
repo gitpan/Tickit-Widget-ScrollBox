@@ -1,5 +1,9 @@
 Revision history for Tickit-Widget-ScrollBox
 
+0.05    2014/10/08 14:52:45
+        [BUGFIXES]
+         * Better handling of content smaller than viewport
+
 0.04    2014/09/18 21:03:56
         [CHANGES]
          * Accept Alt+wheel to scroll horizontally

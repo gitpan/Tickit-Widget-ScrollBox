@@ -11,7 +11,7 @@ use base qw( Tickit::SingleChildWidget );
 Tickit::Window->VERSION( '0.39' ); # ->scroll_with_children
 use Tickit::Style;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Carp;
 

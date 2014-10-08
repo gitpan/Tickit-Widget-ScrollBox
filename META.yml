@@ -7,7 +7,7 @@ build_requires:
   Test::Refcount: '0'
   Tickit::Test: '0.38'
 dynamic_config: 1
-generated_by: 'Module::Build version 0.4206, CPAN::Meta::Converter version 2.142060'
+generated_by: 'Module::Build version 0.421, CPAN::Meta::Converter version 2.142060'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -16,14 +16,15 @@ name: Tickit-Widget-ScrollBox
 provides:
   Tickit::Widget::ScrollBox:
     file: lib/Tickit/Widget/ScrollBox.pm
-    version: '0.04'
+    version: '0.05'
   Tickit::Widget::ScrollBox::Extent:
     file: lib/Tickit/Widget/ScrollBox/Extent.pm
-    version: '0.04'
+    version: '0.05'
 requires:
   Tickit::SingleChildWidget: '0.36'
   Tickit::Style: '0.35'
   Tickit::Window: '0.39'
 resources:
+  IRC: irc://irc.freenode.net/#tickit
   license: http://dev.perl.org/licenses/
-version: '0.04'
+version: '0.05'

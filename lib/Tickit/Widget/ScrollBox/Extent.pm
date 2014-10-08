@@ -1,14 +1,14 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2013 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2013-2014 -- leonerd@leonerd.org.uk
 
 package Tickit::Widget::ScrollBox::Extent;
 
 use strict;
 use warnings;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Scalar::Util qw( weaken );
 
@@ -20,7 +20,7 @@ C<Tickit::Widget::ScrollBox::Extent> - represents the range of scrolling extent
 
 This small utility object stores the effective scrolling range for a
 L<Tickit::Widget::ScrollBox>. They are not constructed directly, but instead
-returned by the C<vextent> method of the associated ScrollBox.
+returned by the C<hextent> and C<vextent> methods of the associated ScrollBox.
 
 =cut
 
@@ -116,14 +116,18 @@ sub set_total
 =head2 $limit = $extent->limit
 
 Returns the limit of the offset; the largest value the start offset may be.
-This is simply C<$total - $viewport>.
+This is simply C<$total - $viewport>, with a limit applied so that it returns
+zero rather than a negative value, in the case that the viewport is larger
+than the total.
 
 =cut
 
 sub limit
 {
    my $self = shift;
-   return $self->{total} - $self->{viewport};
+   my $limit = $self->{total} - $self->{viewport};
+   $limit = 0 if $limit < 0;
+   return $limit;
 }
 
 =head2 $start = $extent->start
@@ -168,9 +172,10 @@ sub scroll_to
    my $self = shift;
    my ( $start ) = @_;
 
-   $start = 0 if $start < 0;
    my $limit = $self->limit;
    $start = $limit if $start > $limit;
+
+   $start = 0 if $start < 0;
 
    return if $self->{start} == $start;
 
